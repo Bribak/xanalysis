@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     # Needed to silence warnings (and to be a worthwhile package)
-    name='Analyze',
+    name='XAnalysis',
     url='https://github.com/Bribak/xanalysis',
     author='Daniel Bojar',
     author_email='daniel@bojar.net',
