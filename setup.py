@@ -15,5 +15,5 @@ setup(
     # The license can be anything you like
     license='CC0',
     description='Analyzing DNA sequences',
-    long_description=open('README.txt').read(),
+    long_description=open('README.md').read(),
 )
