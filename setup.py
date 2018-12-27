@@ -7,7 +7,7 @@ setup(
     author='Daniel Bojar',
     author_email='daniel@bojar.net',
     # Needed to actually package something
-    packages=['analyze'],
+    packages=['xanalysis'],
     # Needed for dependencies
     install_requires=['Bio','pandas','numpy'],
     # *strongly* suggested for sharing
