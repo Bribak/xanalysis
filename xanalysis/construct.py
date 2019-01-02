@@ -1,8 +1,10 @@
 from Bio import SeqIO
+from Bio.SeqUtils.ProtParam import ProteinAnalysis
 from Bio.Seq import Seq
 from Bio.Alphabet import IUPAC
 import pandas as pd
 import numpy as np
+import random
 
 # function to transform cDNA library into protein library
 def translate_aa(filename, outputfile):
@@ -53,3 +55,124 @@ def merge_dna(filenamelist, outfilename):
         for fname in filenamelist:
             with open(fname) as infile:
                 outfile.write(infile.read())
+
+# make protein subsample with a- and b-mers as words
+def kmerize_prot(filename, outfilename, n=1000, a=1, b=2):
+    i=0
+    with open(outfilename,'w') as outfile:
+        while i<n:
+            outline=[]
+            line = random.choice(list(open(filename)))
+            line = line.replace('\n','')
+            if len(line)%2==1:
+                line=line[:-1]
+            j=0
+            while j<len(line):
+                choice = random.choice([a,b])
+                if choice==a:
+                    outline.append(line[j:j+a])
+                    j+=a
+                elif choice==b:
+                    outline.append(line[j:j+b])
+                    j+=b
+            outline=str(' '.join(outline))
+            i+=1
+            outfile.write(outline+'\n')
+
+# construct feature matrix from amino acid sequence
+def featurize_prot(filename,idColumn,seqColumn,label):
+    df=pd.read_csv(filename)
+    df[seqColumn]=df[seqColumn].apply(lambda x: x.replace('\r\n',''))
+    idx=df[idColumn]
+    seqs=df[seqColumn].values.tolist()
+    weight = []
+    isoelectric = []
+    helix =[]
+    turn=[]
+    sheet=[]
+    aromaticity=[]
+    A=[]
+    C=[]
+    D=[]
+    E=[]
+    F=[]
+    G=[]
+    H=[]
+    I=[]
+    K=[]
+    L=[]
+    M=[]
+    N=[]
+    P=[]
+    Q=[]
+    R=[]
+    S=[]
+    T=[]
+    V=[]
+    W=[]
+    Y=[]
+    flex1=[]
+    flex2=[]
+    flex3=[]
+    ext=[]
+    lab=[]
+    dic2=['A','C',
+               'D','E','F','G','H','I','K','L','M','N','P',
+               'Q','R','S','T','V','W','Y']
+    final_dic={}
+    for seq in seqs:
+        seq=str(seq)
+        analyse=ProteinAnalysis(seq)
+        weight.append(analyse.molecular_weight())
+        isoelectric.append(analyse.isoelectric_point())
+        h, t, s = analyse.secondary_structure_fraction()
+        helix.append(h)
+        turn.append(t)
+        sheet.append(h)
+        aromaticity.append(analyse.aromaticity())
+        dic = analyse.get_amino_acids_percent()
+        A.append(dic['A'])
+        C.append(dic['C'])
+        D.append(dic['D'])
+        E.append(dic['E'])
+        F.append(dic['F'])
+        G.append(dic['G'])
+        H.append(dic['H'])
+        I.append(dic['I'])
+        K.append(dic['K'])
+        L.append(dic['L'])
+        M.append(dic['M'])
+        N.append(dic['N'])
+        P.append(dic['P'])
+        Q.append(dic['Q'])
+        R.append(dic['R'])
+        S.append(dic['S'])
+        T.append(dic['T'])
+        V.append(dic['V'])
+        W.append(dic['W'])
+        Y.append(dic['Y'])
+        flexy=analyse.flexibility()
+        _s =round((len(flexy)/3))+1
+        flex1.append(np.mean(flexy[:_s]))
+        flex2.append(np.mean(flexy[_s:2*_s]))
+        flex3.append(np.mean(flexy[2*_s:]))
+        ext.append(analyse.molar_extinction_coefficient()[0])
+        lab.append(label)
+        for o in dic2:
+            for j in dic2:
+                final_dic.setdefault(o+j,[])
+                final_dic[o+j].append(seq.count(o+j)/(len(seq)/2))
+    df3 = pd.DataFrame.from_dict(final_dic)
+    df2 = np.column_stack((weight,isoelectric,helix,
+                          turn,sheet,aromaticity,A,C,D,E,F,G,H,
+                          I,K,L,M,N,P,Q,R,S,T,V,W,Y,flex1,flex2,
+                           flex3,ext,lab))
+    columns = ['MolWeight','IsoelectricPoint',
+               'Helix%','Turn%','Sheet%','Aromaticity','A%','C%',
+               'D%','E%','F%','G%','H%','I%','K%','L%','M%','N%','P%',
+               'Q%','R%','S%','T%','V%','W%','Y%','MeanFlexibility1',
+               'MeanFlexibility2','MeanFlexibility3',
+               'ExtinctionCoef','FP']
+    df2 = pd.DataFrame(data=df2,columns=columns)
+    df4 = pd.concat([df2,df3],axis=1)
+    return df4

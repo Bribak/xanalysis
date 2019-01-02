@@ -9,9 +9,9 @@ setup(
     # Needed to actually package something
     packages=['xanalysis'],
     # Needed for dependencies
-    install_requires=['Bio','pandas','numpy'],
+    install_requires=['biopython','scikit-learn','pandas','numpy'],
     # *strongly* suggested for sharing
-    version='0.1',
+    version='0.2',
     # The license can be anything you like
     license='CC0',
     description='Analyzing DNA sequences',
